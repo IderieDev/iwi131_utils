@@ -5,9 +5,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+import xlrd
+
+import pandas as pd 
+
 import logging
 
-logger = logging.getLogger('hackerrank_scraper.scraper')
+logging.basicConfig(level=getattr(logging, 'INFO'))
+logger = logging.getLogger('iwi131_utils')
 
 # The element names of the leaderboard fields
 HACKERRANK_LEADERBOARD_LIST_CLASS_NAME = 'leaderboard-list-view'
@@ -17,15 +22,15 @@ HACKERRANK_LEADERBOARD_LIST_CLASS_NAME = 'leaderboard-list-view'
 HACKERRANK_LEADERBOARD_ROW_CLASS_NAME = 'row '
 
 
-class Competitor:
-    def __init__(self, position, username, completedCount):
+class Sansano_Hackerrank:
+    def __init__(self, position, username, nota):
         self.position = position
         self.username = username
-        self.completedCount = completedCount
+        self.nota = nota
 
     def __str__(self):
         return '{0:<5} {1:<25} {2:<5}'.format(self.position, self.username,
-                                              self.completedCount)
+                                              self.nota)
 
     def __repr__(self):
         return self.__str__()
@@ -34,8 +39,8 @@ class Competitor:
 class Scraper:
     def __init__(self, hackerrank_leaderboard_url):
         
-        #self.driver = webdriver.PhantomJS('/opt/conda/bin/phantomjs')
-        self.driver = webdriver.ChromeOptions('/opt/conda/bin/chromedriver')
+        self.driver = webdriver.PhantomJS('/opt/conda/bin/phantomjs')
+        #self.driver = webdriver.Chrome(executable_path='/opt/conda/bin/chromedriver')
         self.hackerrank_leaderboard_url = hackerrank_leaderboard_url
         self.loggedin = False
 
@@ -52,7 +57,7 @@ class Scraper:
                 0 if problems_completed == '-' else round(float(problems_completed))
             )
 
-            competitor = Competitor(position, username, problems_completed)
+            competitor = Sansano_Hackerrank(position, username, problems_completed)
             
             logger.debug('Loaded competitor {}'.format(competitor))
             yield competitor
@@ -86,10 +91,15 @@ class Scraper:
             logger.info('Page {} loaded.'.format(pageNumber))
             pageNumber += 1
 
-    def _scrape(self, leaderboard_url):
-        for competitor in self.get_competitors_from_leaderboard(leaderboard_url):
+    def scrape(self):
+        for competitor in self.get_competitors_from_leaderboard(self.hackerrank_leaderboard_url):
             yield competitor
 
-    def scrape(self):
-        for competitor in self._scrape(self.hackerrank_leaderboard_url):
-            yield competitor
+            
+def estudiantes_x_paralelo_siga(dest_filename):
+    xl_workbook = xlrd.open_workbook(dest_filename)
+    sheet_names = xl_workbook.sheet_names()
+    xl_sheet = xl_workbook.sheet_by_name(sheet_names[0])
+    num_cols = xl_sheet.ncols
+    matrix = [[xl_sheet.cell(row_idx, 1).value,xl_sheet.cell(row_idx, 10).value.split('@')[0].replace(".", "_")] for row_idx in range(9, xl_sheet.nrows)]
+    return pd.DataFrame(matrix, columns = ['rol', 'username']) 
