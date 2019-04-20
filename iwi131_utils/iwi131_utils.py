@@ -11,6 +11,8 @@ import pandas as pd
 
 import logging
 
+from difflib import SequenceMatcher
+
 logging.basicConfig(level=getattr(logging, 'INFO'))
 logger = logging.getLogger('iwi131_utils')
 
@@ -103,3 +105,14 @@ def estudiantes_x_paralelo_siga(dest_filename):
     num_cols = xl_sheet.ncols
     matrix = [[xl_sheet.cell(row_idx, 1).value,xl_sheet.cell(row_idx, 10).value.split('@')[0].replace(".", "_")] for row_idx in range(9, xl_sheet.nrows)]
     return pd.DataFrame(matrix, columns = ['rol', 'username']) 
+
+def identificador_nn(df_paralelo, df_alumnos_nn,ratio=0.85):
+    identificados=[]
+    residuos=[]
+    for _, user_nn in df_paralelo.iterrows():
+        for _, user_all in df_alumnos_nn.iterrows():
+            if SequenceMatcher(None, user_nn['username'], user_all['username']).ratio() >ratio:
+                identificados.append([user_nn['username'],user_all['nota'],user_nn['rol']])
+                residuos.append(user_all['username'])
+
+    return (pd.DataFrame(identificados, columns = ['username', 'nota','rol']),residuos)
