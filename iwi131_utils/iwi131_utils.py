@@ -41,7 +41,7 @@ class Sansano_Hackerrank:
 class Scraper:
     def __init__(self, hackerrank_leaderboard_url):
         
-        self.driver = webdriver.PhantomJS('/opt/conda/bin/phantomjs')
+        self.driver = webdriver.PhantomJS('/Users/dylan/anaconda3/bin/phantomjs')
         #self.driver = webdriver.Chrome(executable_path='/opt/conda/bin/chromedriver')
         self.hackerrank_leaderboard_url = hackerrank_leaderboard_url
         self.loggedin = False
@@ -111,7 +111,7 @@ def identificador_nn(df_paralelo, df_alumnos_nn,ratio=0.85):
     residuos=[]
     for _, user_nn in df_paralelo.iterrows():
         for _, user_all in df_alumnos_nn.iterrows():
-            if SequenceMatcher(None, user_nn['username'], user_all['username']).ratio() >ratio:
+            if SequenceMatcher(None, str(user_nn['rol']), str(user_all['rol'])).ratio() >ratio:
                 identificados.append([user_nn['username'],user_all['nota'],user_nn['rol']])
                 residuos.append(user_all['username'])
 
